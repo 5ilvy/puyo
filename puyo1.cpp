@@ -1,7 +1,6 @@
-//課題1
-//2019/04/12
-
 #include <curses.h>
+#include <ctime>
+#include <cstdlib>
 
 //ぷよの色を表すの列挙型
 //NONEが無し，RED,BLUE,..が色を表す
@@ -38,8 +37,7 @@ void ChangeSize(unsigned int line, unsigned int column)
 }
 
 //盤面の行数を返す
-unsigned int GetLine()
-{
+unsigned int GetLine(){
 	return data_line;
 }
 
@@ -73,15 +71,20 @@ void SetValue(unsigned int y, unsigned int x, puyocolor value)
 	data[y*GetColumn() + x] = value;
 }
 
-
+ void RandomInit(void){
+	srand((unsigned int) time(NULL));
+	for (int i=0;i<5;i++)rand();//カラ実行　
+}
+	
 //盤面に新しいぷよ生成
 void GeneratePuyo()
 {
+
 	puyocolor newpuyo1;
-	newpuyo1 = RED;
+	newpuyo1 = (puyocolor) (rand()%4+1);
 
 	puyocolor newpuyo2;
-	newpuyo2 = BLUE;
+	newpuyo2 = (puyocolor) (rand()%4+1);
 
 	SetValue(0, 5, newpuyo1);
 	SetValue(0, 6, newpuyo2);
@@ -259,21 +262,27 @@ void Display()
 			switch (GetValue(y, x))
 			{
 			case NONE:
+				attrset(COLOR_PAIR(0));
 				mvaddch(y, x, '.');
 				break;
 			case RED:
+				attrset(COLOR_PAIR(RED));
 				mvaddch(y, x, 'R');
 				break;
 			case BLUE:
+				attrset(COLOR_PAIR(BLUE));
 				mvaddch(y, x, 'B');
 				break;
 			case GREEN:
+				attrset(COLOR_PAIR(GREEN));
 				mvaddch(y, x, 'G');
 				break;
 			case YELLOW:
+				attrset(COLOR_PAIR(YELLOW));
 				mvaddch(y, x, 'Y');
 				break;
 			default:
+				attrset(COLOR_PAIR(0));
 				mvaddch(y, x, '?');
 				break;
 			}
@@ -302,14 +311,21 @@ void Display()
 	refresh();
 }
 
-
+void color_init(){
+	init_pair(RED, COLOR_RED, COLOR_BLACK);
+	init_pair(BLUE, COLOR_BLUE, COLOR_BLACK);
+	init_pair(GREEN, COLOR_GREEN, COLOR_BLACK);
+	init_pair(YELLOW, COLOR_YELLOW, COLOR_BLACK);
+	
+	
+}
 //ここから実行される
 int main(int argc, char **argv){
 	//画面の初期化
 	initscr();
 	//カラー属性を扱うための初期化
 	start_color();
-
+	color_init();
 	//キーを押しても画面に表示しない
 	noecho();
 	//キー入力を即座に受け付ける
@@ -324,6 +340,7 @@ int main(int argc, char **argv){
 
 
 	//初期化処理
+	RandomInit();
 	ChangeSize(LINES/2, COLS/2);	//フィールドは画面サイズの縦横1/2にする
 	GeneratePuyo();	//最初のぷよ生成
 
