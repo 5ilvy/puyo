@@ -2,3 +2,10 @@
 .DS_Store
 .vscode/*
 *.out
+GPATH
+GRTAGS
+GTAGS
+honi.cpp
+puyo
+*.md
+sdl_*
