@@ -137,7 +137,7 @@ public:
 	bool isLandingPuyo(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack);
 	void MoveLeft(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack);
 	void MoveRight(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack);
-	void MoveDown(PuyoArrayActive &puyo_active);
+	void MoveDown(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack);
 };
 
 //盤面に新しいぷよ生成
@@ -151,6 +151,7 @@ void PuyoControl::GeneratePuyo(PuyoArrayActive &puyo_active)
 	newpuyo2 = (puyocolor)(rand() % 4 + 1);
 
 	puyo_active.IncreaseCount(2);
+	// puyo_active.IncreaseCount(1);
 	puyo_active.SetValue(0, 5, newpuyo1);
 	puyo_active.SetValue(0, 6, newpuyo2);
 }
@@ -179,7 +180,7 @@ bool PuyoControl::isLandingPuyo(PuyoArrayActive &puyo_active, PuyoArrayStack &pu
 			{
 				LandedPuyo(y, x, puyo_active, puyo_stack);
 				new_puyo_count++;
-			}
+			}	
 		}
 	}
 	if (new_puyo_count == 2)
@@ -285,7 +286,7 @@ void PuyoControl::MoveRight(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_s
 }
 
 //下移動
-void PuyoControl::MoveDown(PuyoArrayActive &puyo_active)
+void PuyoControl::MoveDown(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack)
 {
 	//一時的格納場所メモリ確保
 	puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
@@ -305,7 +306,7 @@ void PuyoControl::MoveDown(PuyoArrayActive &puyo_active)
 				continue;
 			}
 
-			if (y < puyo_active.GetLine() - 1 && puyo_active.GetValue(y + 1, x) == NONE)
+			if (y < puyo_active.GetLine() - 1 && puyo_stack.GetValue(y + 1, x) == NONE)
 			{
 				puyo_temp[(y + 1) * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
 				//コピー後に元位置のpuyoactiveのデータは消す
@@ -368,31 +369,31 @@ void Display(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack)
 				break;
 			}
 
-			// //落下済みぷよ表示
-			// switch (puyo_stack.GetValue(y, x))
-			// {
-			// case NONE:
-			// 	//何も描画しない
-			// 	break;
-			// case RED:
-			// 	attrset(COLOR_PAIR(RED));
-			// 	mvaddch(y, x, 'R');
-			// 	break;
-			// case BLUE:
-			// 	attrset(COLOR_PAIR(BLUE));
-			// 	mvaddch(y, x, 'B');
-			// 	break;
-			// case GREEN:
-			// 	attrset(COLOR_PAIR(GREEN));
-			// 	mvaddch(y, x, 'G');
-			// 	break;
-			// case YELLOW:
-			// 	attrset(COLOR_PAIR(YELLOW));
-			// 	mvaddch(y, x, 'Y');
-			// 	break;
-			// default:
-			// 	break;
-			// }
+			//落下済みぷよ表示
+			switch (puyo_stack.GetValue(y, x))
+			{
+			case NONE:
+				//何も描画しない
+				break;
+			case RED:
+				attrset(COLOR_PAIR(RED));
+				mvaddch(y, x, 'R');
+				break;
+			case BLUE:
+				attrset(COLOR_PAIR(BLUE));
+				mvaddch(y, x, 'B');
+				break;
+			case GREEN:
+				attrset(COLOR_PAIR(GREEN));
+				mvaddch(y, x, 'G');
+				break;
+			case YELLOW:
+				attrset(COLOR_PAIR(YELLOW));
+				mvaddch(y, x, 'Y');
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
@@ -486,7 +487,7 @@ int main(int argc, char **argv)
 		if (delay % waitCount == 0)
 		{
 			//ぷよ下に移動
-			control.MoveDown(puyo_active);
+			control.MoveDown(puyo_active, puyo_stack);
 
 			//ぷよ着地判定
 			if (control.isLandingPuyo(puyo_active, puyo_stack))
