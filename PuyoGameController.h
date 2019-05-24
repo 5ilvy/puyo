@@ -25,6 +25,7 @@ enum puyo_bg_color
 	YELLOW_BG = 10,
 	WHITE_BG = 11
 };
+
 class PuyoArray
 {
 public:
@@ -51,6 +52,14 @@ protected:
 
 class PuyoArrayActive : public PuyoArray
 {
+public:
+
+	PuyoArrayActive();
+	void SetRotateState(const int puyo_rotate);
+	int  GetRotateState(void)const;
+private:
+	int puyo_state_rotate;
+
 };
 class PuyoArrayStack : public PuyoArray
 {
@@ -86,7 +95,7 @@ private:
     PuyoArrayActive &puyo_active;
     PuyoArrayStack &puyo_stack;
 	std::queue<puyocolor> newPuyoQueue;
-	
+	int newPuyoLandingCount;
 };
 
 

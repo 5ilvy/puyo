@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 			break;
 		case 'z':
 			//ぷよ回転処理
-			// control.RotateCw();
+			control.RotateCw();
 			// バグが治らないので今回は見送り
 			break;
 		default:

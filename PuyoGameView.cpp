@@ -2,7 +2,7 @@
 #include "PuyoGameView.h"
 
 PuyoView::PuyoView(PuyoArrayActive &puyo_active_, PuyoArrayStack &puyo_stack_, PuyoControl &control_) 
-         : delay(0), waitCount(10000), puyo_active (puyo_active_), puyo_stack(puyo_stack_), control(control_)
+         : delay(0), waitCount(3000), puyo_active (puyo_active_), puyo_stack(puyo_stack_), control(control_)
 {
     //画面の初期化
     initscr();
@@ -63,12 +63,16 @@ bool PuyoView::ShowStats(void)
 	char msg[256];
 	// attrset(COLOR_PAIR(RED_BG));
 	attrset(COLOR_PAIR(WHITE_BG));
-	sprintf(msg, "|Field: %03d x %03d|", puyo_active.GetLine(), puyo_active.GetColumn());
+	sprintf(msg, "--------------------");
+	mvaddstr(1, COLS - 20, msg);
+	sprintf(msg, "| Field: %03d x %03d |", puyo_active.GetLine(), puyo_active.GetColumn());
 	mvaddstr(2, COLS - 20, msg);
-	sprintf(msg, "|Puyo number: %03d|", count);
+	sprintf(msg, "| Puyo number: %03d |", count);
 	mvaddstr(3, COLS - 20, msg);
 	//sprintf(msg,"|Chaining: %03d   |", puyo_stack.GetChainNum());
 	//mvaddstr(4, COLS - 45, msg);
+	sprintf(msg, "--------------------");
+	mvaddstr(4, COLS - 20, msg);
 	
 	//次のぷよを表示
 	attrset(COLOR_PAIR(WHITE_BG));

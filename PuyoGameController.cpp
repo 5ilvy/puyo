@@ -90,6 +90,14 @@ void PuyoArray::DecreaseCount(int n)
         data_count = 0;
 }
 
+PuyoArrayActive::PuyoArrayActive()
+    :puyo_state_rotate(0)
+{
+}
+
+void PuyoArrayActive::SetRotateState(const int puyo_rotate){puyo_state_rotate=puyo_rotate;}
+int PuyoArrayActive::GetRotateState(void)const{return puyo_state_rotate;}
+
 PuyoArrayStack::PuyoArrayStack()
 {
     bool isVanished = false;
@@ -160,7 +168,10 @@ int PuyoArrayStack::VanishPuyoDfs(unsigned int y, unsigned int x, puyocolor cons
     return ret;
 }
 
-PuyoControl::PuyoControl(PuyoArrayActive &puyo_active_, PuyoArrayStack &puyo_stack_) : puyo_active(puyo_active_), puyo_stack(puyo_stack_), DELAY_FORCE_MOVEDOWN(1)
+PuyoControl::PuyoControl(PuyoArrayActive &puyo_active_, 
+                         PuyoArrayStack &puyo_stack_) 
+    : puyo_active(puyo_active_), puyo_stack(puyo_stack_),
+      DELAY_FORCE_MOVEDOWN(1), newPuyoLandingCount(0)
 {
 }
 
@@ -184,6 +195,7 @@ void PuyoControl::PopFromQueue()
     {
         puyo_active.SetValue(0, 5 + i, newPuyoQueue.front());
         puyo_active.IncreaseCount();
+        puyo_active.SetRotateState(0);
         newPuyoQueue.pop();
     }
     GeneratePuyo();
@@ -206,6 +218,7 @@ bool PuyoControl::isLandingPuyo()
 {
     bool landed = false;
     static int new_puyo_count=0;
+    
     for (int y = 0; y < puyo_active.GetLine(); y++)
     {
         for (int x = 0; x < puyo_active.GetColumn(); x++)
@@ -224,12 +237,14 @@ bool PuyoControl::isLandingPuyo()
         landed = true;
         new_puyo_count = 0;
     }
+    newPuyoLandingCount = new_puyo_count;
     return landed;
 }
 
 //左移動
 void PuyoControl::MoveLeft()
 {
+    if (newPuyoLandingCount==1)return;
     //一時的格納場所メモリ確保
     puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
 
@@ -277,7 +292,7 @@ void PuyoControl::MoveLeft()
 //右移動
 void PuyoControl::MoveRight()
 {
-    // if (new_puyo_count == 1)return;
+    if (newPuyoLandingCount==1)return;
     //一時的格納場所メモリ確保
     puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
 
@@ -419,106 +434,93 @@ void PuyoControl::MoveStackDown()
 //回転(Clockwise)
 void PuyoControl::RotateCw()
 {
-    //一時的格納場所メモリ確保
-    puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
-    bool blkflg=false;
-    for (int i = 0; i < puyo_active.GetLine() * puyo_active.GetColumn(); i++)
-    {
-        puyo_temp[i] = NONE;
-    }
-    for (int y = 0; y < puyo_active.GetLine() - 2; y++)
+    if (newPuyoLandingCount==1)return;
+    puyocolor puyo_f, puyo_l;
+              puyo_f = puyo_l = NONE;
+    unsigned int puyo_f_pos[2] = {},puyo_l_pos[2]={};
+    //0:y, 1:x
+
+
+    for (int y = 0; y < puyo_active.GetLine() - 1; y++)
     {
         for (int x = 0; x < puyo_active.GetColumn() - 1; x++)
         {
-            puyocolor now_puyo = puyo_active.GetValue(y, x);
-            if (now_puyo == NONE)continue;
-            puyocolor now_puyo_right = NONE;
-            puyocolor now_puyo_lower = NONE;
-            puyocolor now_puyo_left = NONE;
-            puyocolor now_puyo_upper = NONE;
-
-            if (now_puyo != NONE)
+            if (puyo_f != NONE && puyo_l != NONE) continue;
+            if (puyo_active.GetValue(y,x) != NONE && puyo_f!=NONE && puyo_l==NONE)
             {
-                if (x < puyo_active.GetColumn() - 1 && puyo_stack.GetValue(y, x + 1) == NONE)
-                    now_puyo_right = puyo_active.GetValue(y, x + 1);
-                if (x > 0 && puyo_stack.GetValue(y, x - 1) == NONE)
-                    now_puyo_left = puyo_active.GetValue(y, x - 1);
-                if (y < puyo_active.GetLine() - 1)
-                    now_puyo_lower = puyo_active.GetValue(y + 1, x);
-                if (y > 0 )
-                    now_puyo_upper = puyo_active.GetValue(y - 1, x);
-                if (now_puyo_right != NONE)
-                {
-                    if (y<puyo_active.GetLine()-1 && puyo_stack.GetValue(y + 1, x) == NONE)
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[(y + 1) * puyo_active.GetColumn() + x] = now_puyo_right;
-                    }
-                    else
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[y * puyo_active.GetColumn() + x + 1] = now_puyo_right;
-                    }
-                }
-                else if (now_puyo_left != NONE)
-                {
-                    if (y > 0 && puyo_stack.GetValue(y-1,x)==NONE)
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[(y - 1) * puyo_active.GetColumn() + x] = now_puyo_left;
-                    }
-                    else
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[y * puyo_active.GetColumn() + x - 1] = now_puyo_left;
-                    }
-                }
-                else if (now_puyo_lower != NONE)
-                {
-                    if (x > 0 && puyo_stack.GetValue(y,x-1)==NONE)
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[y * puyo_active.GetColumn() + x - 1] = now_puyo_lower;
-                        blkflg = true;
-                        break;
-                    }
-                    else
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[(y + 1) * puyo_active.GetColumn() + x] = now_puyo_lower;
-                    }
-                }
-
-                else if (now_puyo_upper != NONE)
-                {
-                    if (x < puyo_active.GetColumn() - 1 && puyo_stack.GetValue(y,x+1)==NONE)
-                    {
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[y * puyo_active.GetColumn() + x + 1] = now_puyo_upper;
-                    }else{
-                        puyo_temp[y * puyo_active.GetColumn() + x] = now_puyo;
-                        puyo_temp[(y-1) * puyo_active.GetColumn() + x ] = now_puyo_upper;
-                    }
-                }
-                blkflg = true;
-                if (blkflg) break;
+                puyo_l = puyo_active.GetValue(y,x);
+                puyo_l_pos[0] = y;
+                puyo_l_pos[1] = x;
+                
             }
-            if (blkflg) break;
-        }
-        if (blkflg) break;
-    }
+            if (puyo_active.GetValue(y,x) != NONE && puyo_f==NONE)
+            {
+                puyo_f = puyo_active.GetValue(y,x);
+                puyo_f_pos[0] = y;
+                puyo_f_pos[1] = x;
+                
+            }
 
-    //puyo_tempからpuyoactiveへコピー
-    for (int y = 0; y < puyo_active.GetLine(); y++)
+            
+            
+        }
+    }
+    puyo_active.SetValue(puyo_f_pos[0],puyo_f_pos[1],NONE);
+    puyo_active.SetValue(puyo_l_pos[0],puyo_l_pos[1],NONE);
+    bool rotateSuccess = false;
+    switch (puyo_active.GetRotateState())
     {
-        for (int x = 0; x < puyo_active.GetColumn(); x++)
-        {
-            puyo_active.SetValue(y, x, puyo_temp[y * puyo_active.GetColumn() + x]);
-        }
+        case 0://AB -> |(A,B)
+            if ( puyo_l_pos[0] < puyo_active.GetLine() - 1
+                        && puyo_stack.GetValue(puyo_l_pos[0]+1,puyo_f_pos[1])==NONE)
+            {
+                puyo_active.SetValue(puyo_f_pos[0], puyo_f_pos[1], puyo_f);
+                puyo_active.SetValue(puyo_f_pos[0] + 1, puyo_f_pos[1], puyo_l);
+                rotateSuccess=true;
+            }
+        break;
+        case 1://|(A,B) -> BA
+            if ( puyo_f_pos[1] > 0
+                        && puyo_stack.GetValue(puyo_f_pos[0],puyo_f_pos[1] - 1)==NONE)
+            {
+                puyo_active.SetValue(puyo_f_pos[0], puyo_f_pos[1], puyo_f);
+                puyo_active.SetValue(puyo_f_pos[0] , puyo_f_pos[1] - 1, puyo_l);
+                rotateSuccess=true;
+            }
+        break;
+        case 2://BA -> | (B,A) // A基準!!!!
+            if ( puyo_f_pos[0] > 0
+                        && puyo_stack.GetValue(puyo_f_pos[0] - 1,puyo_l_pos[1])==NONE)
+            {
+                puyo_active.SetValue(puyo_f_pos[0] - 1, puyo_l_pos[1], puyo_f);
+                puyo_active.SetValue(puyo_l_pos[0], puyo_l_pos[1], puyo_l);
+                rotateSuccess=true;
+            }
+        break;
+        case 3://|->AB
+            if ( puyo_l_pos[1] < puyo_active.GetColumn() -1
+                        && puyo_stack.GetValue(puyo_l_pos[0], puyo_l_pos[1] + 1)==NONE)
+            {
+                puyo_active.SetValue(puyo_l_pos[0], puyo_l_pos[1]+1, puyo_f);
+                puyo_active.SetValue(puyo_l_pos[0] , puyo_l_pos[1], puyo_l);
+                rotateSuccess=true;
+            }
+        break;
     }
+    if (rotateSuccess)
+    {
+        puyo_active.SetRotateState((puyo_active.GetRotateState()+1)%4);
+    }
+    else
+    {
+        puyo_active.SetValue(puyo_f_pos[0],puyo_f_pos[1],puyo_f);
+        puyo_active.SetValue(puyo_l_pos[0],puyo_l_pos[1],puyo_l);
+    }
+    //         puyocolor now_puyo = puyo_active.GetValue(y, x);
 
-    //一時的格納場所メモリ解放
-    delete[] puyo_temp;
+    //         puyocolor now_puyo_left  = NONE;
+    //         puyocolor now_puyo_upper = NONE;
+
 }
 //回転(Counter-clockwise)
 void PuyoControl::RotateCcw()
