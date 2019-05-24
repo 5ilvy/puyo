@@ -12,7 +12,14 @@ enum puyocolor
 	GREEN,
 	YELLOW
 };
-
+enum puyobgcolor
+{
+	NONE_BG,
+	RED_BG,
+	BLUE_BG,
+	GREEN_BG,
+	YELLOW_BG
+};
 class PuyoArray
 {
 public:
@@ -104,10 +111,8 @@ puyocolor PuyoArray::GetValue(unsigned int y, unsigned int x)
 void PuyoArray::SetValue(unsigned int y, unsigned int x, puyocolor value)
 {
 	if (y >= GetLine() || x >= GetColumn())
-	{
-		//引数の値が正しくない
-		return;
-	}
+		 return;//引数の値が正しくない
+	
 
 	data[y * GetColumn() + x] = value;
 }
@@ -180,7 +185,7 @@ bool PuyoControl::isLandingPuyo(PuyoArrayActive &puyo_active, PuyoArrayStack &pu
 			{
 				LandedPuyo(y, x, puyo_active, puyo_stack);
 				new_puyo_count++;
-			}	
+			}
 		}
 	}
 	if (new_puyo_count == 2)
@@ -335,7 +340,7 @@ void PuyoControl::MoveDown(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_st
 //表示
 void Display(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack)
 {
-	
+
 	for (int y = 0; y < puyo_active.GetLine(); y++)
 	{
 		for (int x = 0; x < puyo_active.GetColumn(); x++)
@@ -396,7 +401,6 @@ void Display(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack)
 			}
 		}
 	}
-
 
 	//情報表示
 	int count = puyo_active.GetCount() + puyo_stack.GetCount();
