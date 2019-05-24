@@ -36,7 +36,7 @@ PuyoView::PuyoView(PuyoArrayActive &puyo_active_, PuyoArrayStack &puyo_stack_, P
     //キー入力非ブロッキングモード
     timeout(0);
 
-	bool animation_state = false;
+	animation_state = false;
 }
 
 PuyoView::~PuyoView(void)
@@ -64,25 +64,25 @@ bool PuyoView::ShowStats(void)
 	// attrset(COLOR_PAIR(RED_BG));
 	attrset(COLOR_PAIR(WHITE_BG));
 	sprintf(msg, "|Field: %03d x %03d|", puyo_active.GetLine(), puyo_active.GetColumn());
-	mvaddstr(2, COLS - 45, msg);
+	mvaddstr(2, COLS - 20, msg);
 	sprintf(msg, "|Puyo number: %03d|", count);
-	mvaddstr(3, COLS - 45, msg);
+	mvaddstr(3, COLS - 20, msg);
 	//sprintf(msg,"|Chaining: %03d   |", puyo_stack.GetChainNum());
 	//mvaddstr(4, COLS - 45, msg);
 	
 	//次のぷよを表示
 	attrset(COLOR_PAIR(WHITE_BG));
 	sprintf(msg,"NEXT:");
-	mvaddstr(8, COLS - 45, msg);
+	mvaddstr(8, COLS - 20, msg);
 	attrset(COLOR_PAIR(WHITE_BG));
 	sprintf(msg,"AFTER NEXT:");
-	mvaddstr(10, COLS - 45, msg);
+	mvaddstr(10, COLS - 20, msg);
 
 	std::queue<puyocolor> stack_queue;
 	control.GetQueue(stack_queue);
 	for (int i=0; i<stack_queue.size();i++)
 	{
-		PrintPuyo(8+2*(i/2), COLS -32 - !(i%2), stack_queue.front());
+		PrintPuyo(8+2*(i/2), COLS - 8 - !(i%2), stack_queue.front());
 		stack_queue.pop();
 
 	}

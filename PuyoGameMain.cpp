@@ -50,8 +50,7 @@ int main(int argc, char **argv)
 			break;
 		}
 		
-		//VanishAnimation(未実装)表示中でなければ実行
-		if(!view.GetAnimationState()) control.MoveStackDown();
+
 
 		//処理速度調整のためのif文
 		if (view.delay % view.waitCount == 0)
@@ -68,6 +67,9 @@ int main(int argc, char **argv)
 			
 
 		}
+				//VanishAnimation(未実装)表示中でなければ実行
+		if(!view.GetAnimationState())
+			control.MoveStackDown();
 		//表示
 		view.Display();
 	}
