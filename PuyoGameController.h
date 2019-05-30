@@ -4,6 +4,7 @@
 #include <curses.h>
 #include <ctime>
 #include <cstdlib>
+#include <unistd.h>
 #include <queue>
 
 
@@ -25,6 +26,8 @@ enum puyo_bg_color
 	YELLOW_BG = 10,
 	WHITE_BG = 11
 };
+
+
 
 class PuyoArray
 {
@@ -69,9 +72,11 @@ public:
 	int VanishPuyoDfs(unsigned int y, unsigned int x, puyocolor const &prev_puyo_color, bool *puyo_temp_dfs);
 	bool GetVanished();
 	int GetChainNum();
+	int GetCombo();
 private:
 	bool isVanished ; 
 	int  m_chain;
+	int m_combo;
 };
 
 class PuyoControl

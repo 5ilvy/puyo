@@ -1,16 +1,17 @@
 #include "PuyoGameController.h"
 #include "PuyoGameView.h"
 //ここから実行される
+//Scene Controller
+
 
 int main(int argc, char **argv)
 {
+
 	//初期化処理
 	PuyoArrayActive puyo_active;
 	PuyoArrayStack puyo_stack;
 	PuyoControl control(puyo_active, puyo_stack);
 	PuyoView view(puyo_active, puyo_stack, control);
-
-
 
 	puyo_active.ChangeSize(LINES / 2, COLS / 2);
 	puyo_stack.ChangeSize(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
@@ -41,10 +42,18 @@ int main(int argc, char **argv)
 		case KEY_RIGHT:
 			control.MoveRight();
 			break;
+		case ' ':
+			while (!control.isLandingPuyo()){
+				control.MoveDown();
+			}
+				puyo_stack.VanishPuyo();
+				//着地していたら新しいぷよ生成
+				control.PopFromQueue();
+			break;
 		case 'z':
 			//ぷよ回転処理
 			control.RotateCw();
-			// バグが治らないので今回は見送り
+			
 			break;
 		default:
 			break;

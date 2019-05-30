@@ -15,6 +15,7 @@ public:
     bool ShowStats(void);
     void PrintPuyo(unsigned int y, unsigned int x, puyocolor puyo_print);
     bool GetAnimationState();
+    void VanishAnimation(bool* puyo_temp_dfs);
     int delay;
     const int waitCount; //1000; //for debug
 private:

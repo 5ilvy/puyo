@@ -39,6 +39,7 @@ PuyoView::PuyoView(PuyoArrayActive &puyo_active_, PuyoArrayStack &puyo_stack_, P
 	animation_state = false;
 }
 
+
 PuyoView::~PuyoView(void)
 {
     //画面をリセット
@@ -47,6 +48,18 @@ PuyoView::~PuyoView(void)
 bool PuyoView::GetAnimationState(){
 	return animation_state;
 }
+
+void PuyoView::VanishAnimation(bool* puyo_temp_dfs){
+	for (int y_ = 0; y_ < puyo_active.GetLine(); y_++)
+	{
+		for (int x_ = 0; x_ < puyo_active.GetColumn(); x_++)
+		{
+			if (puyo_temp_dfs[y_ * puyo_active.GetColumn() + x_])
+				PrintPuyo(y_, x_, NONE); //暫定
+		}
+	}
+}
+
 void PuyoView::Display()
 {
     ShowPuyo();

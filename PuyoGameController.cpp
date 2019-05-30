@@ -102,6 +102,7 @@ PuyoArrayStack::PuyoArrayStack()
 {
     bool isVanished = false;
     int m_chain = 0;
+    int m_combo = 0;
 }
 int PuyoArrayStack::GetChainNum() { return m_chain; }
 bool PuyoArrayStack::GetVanished() { return isVanished; }
@@ -131,6 +132,7 @@ int PuyoArrayStack::VanishPuyo()
                     for (int x_ = 0; x_ < GetColumn(); x_++)
                     {
                         if (puyo_temp_dfs[y_ * GetColumn() + x_])
+                            // VanishAnimation();
                             SetValue(y_, x_, NONE); //暫定
                     }
                 }
@@ -139,10 +141,10 @@ int PuyoArrayStack::VanishPuyo()
             }
 
             if (exit_loop_flg)
-                break;
+                usleep(10000);
         }
-        if (exit_loop_flg)
-            break;
+        // if (exit_loop_flg)
+            // break;
     }
     delete[] puyo_temp_dfs;
 
