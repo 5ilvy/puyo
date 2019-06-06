@@ -95,12 +95,15 @@ public:
 	void RotateCw();
 	void RotateCcw();
 	const int DELAY_FORCE_MOVEDOWN;
-	
+	bool GameOverJudge();
+	int GetScore();
 private:
+	bool gameOverFlag;
     PuyoArrayActive &puyo_active;
     PuyoArrayStack &puyo_stack;
 	std::queue<puyocolor> newPuyoQueue;
 	int newPuyoLandingCount;
+	int score;
 };
 
 

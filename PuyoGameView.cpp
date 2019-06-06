@@ -171,6 +171,40 @@ bool PuyoView::ShowPuyo(void)
 			default:
 				break;
 			}
+			// if (puyo_active.GetValue(y,x)!=NONE && puyo_stack.GetValue(y,x)!=NONE)
+			// mvaddch(y, x, '?');
 		}
 	}
+}
+
+void PuyoView::GameOverModal(){
+	// initscr();
+			int score = control.GetScore();
+			char msg[256];
+			for (int y = 0; y<LINES/4-2;y++){
+				refresh();
+				for (int ay = 0; ay<LINES/2;ay++){
+					for (int ax = 0; ax<COLS/2;ax++){
+						attrset(COLOR_PAIR(WHITE_BG));
+						mvaddch(ay, ax, '*');
+					}
+					usleep(1000);
+				}
+				// attrset(COLOR_PAIR(RED_BG));
+				attrset(COLOR_PAIR(RED));
+				sprintf(msg, "--------------------");
+				mvaddstr(y, COLS/4-10, msg);
+				sprintf(msg, "| G A M E O V E R! |");
+				mvaddstr(y+1, COLS/4-10, msg);
+				sprintf(msg, "| Score : %08d |", score);
+				mvaddstr(y+2, COLS/4-10, msg);
+				//sprintf(msg,"|Chaining: %03d   |", puyo_stack.GetChainNum());
+				//mvaddstr(4, COLS - 45, msg);
+				sprintf(msg, "--------------------");
+				mvaddstr(y+3, COLS/4-10, msg);
+				usleep(10000);
+			}
+			sprintf(msg, "Press 'Q' to Quit or 'R' to Retry.");
+				mvaddstr(LINES/4+3, COLS/4-17, msg);
+				
 }

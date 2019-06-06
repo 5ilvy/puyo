@@ -173,7 +173,7 @@ int PuyoArrayStack::VanishPuyoDfs(unsigned int y, unsigned int x, puyocolor cons
 PuyoControl::PuyoControl(PuyoArrayActive &puyo_active_, 
                          PuyoArrayStack &puyo_stack_) 
     : puyo_active(puyo_active_), puyo_stack(puyo_stack_),
-      DELAY_FORCE_MOVEDOWN(1), newPuyoLandingCount(0)
+      DELAY_FORCE_MOVEDOWN(1), newPuyoLandingCount(0),gameOverFlag(false)
 {
 }
 
@@ -221,10 +221,13 @@ bool PuyoControl::isLandingPuyo()
     bool landed = false;
     static int new_puyo_count=0;
     
-    for (int y = 0; y < puyo_active.GetLine(); y++)
+    for (int y = puyo_active.GetLine() -1; y >= 0 ; y--)
     {
         for (int x = 0; x < puyo_active.GetColumn(); x++)
         {
+            // if(puyo_active.GetValue(y, x) != NONE && puyo_stack.GetValue(y, x) != NONE ){
+            //     puyo_active.SetValue()
+            // }
             if ((puyo_active.GetValue(y, x) != NONE) &&
                 (puyo_stack.GetValue(y, x) == NONE) &&
                 (puyo_stack.GetValue(y + 1, x) != NONE || y == puyo_active.GetLine() - 1))
@@ -342,16 +345,7 @@ void PuyoControl::MoveRight()
 //下移動
 void PuyoControl::MoveDown()
 {
-    //一時的格納場所メモリ確保
-    puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
-
-    for (int i = 0; i < puyo_active.GetLine() * puyo_active.GetColumn(); i++)
-    {
-        puyo_temp[i] = NONE;
-    }
-
-    //1つ下の位置にpuyoactiveからpuyo_tempへとコピー
-    for (int y = puyo_active.GetLine() - 1; y >= 0; y--)
+     for (int y = puyo_active.GetLine() - 1; y >= 0; y--)
     {
         for (int x = 0; x < puyo_active.GetColumn(); x++)
         {
@@ -362,28 +356,59 @@ void PuyoControl::MoveDown()
 
             if (y < puyo_active.GetLine() - 1 && puyo_stack.GetValue(y + 1, x) == NONE)
             {
-                puyo_temp[(y + 1) * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
+                puyo_active.SetValue(y+1, x, puyo_active.GetValue(y, x));
                 //コピー後に元位置のpuyoactiveのデータは消す
                 puyo_active.SetValue(y, x, NONE);
             }
-            else
-            {
-                puyo_temp[y * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
-            }
+            // else
+            // {
+            //     puyo_temp[y * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
+            // }
         }
     }
 
-    //puyo_tempからpuyoactiveへコピー
-    for (int y = 0; y < puyo_active.GetLine(); y++)
-    {
-        for (int x = 0; x < puyo_active.GetColumn(); x++)
-        {
-            puyo_active.SetValue(y, x, puyo_temp[y * puyo_active.GetColumn() + x]);
-        }
-    }
+    // //一時的格納場所メモリ確保
+    // puyocolor *puyo_temp = new puyocolor[puyo_active.GetLine() * puyo_active.GetColumn()];
 
-    //一時的格納場所メモリ解放
-    delete[] puyo_temp;
+    // for (int i = 0; i < puyo_active.GetLine() * puyo_active.GetColumn(); i++)
+    // {
+    //     puyo_temp[i] = NONE;
+    // }
+
+    // //1つ下の位置にpuyoactiveからpuyo_tempへとコピー
+    // for (int y = puyo_active.GetLine() - 1; y >= 0; y--)
+    // {
+    //     for (int x = 0; x < puyo_active.GetColumn(); x++)
+    //     {
+    //         if (puyo_active.GetValue(y, x) == NONE)
+    //         {
+    //             continue;
+    //         }
+
+    //         if (y < puyo_active.GetLine() - 1 && puyo_stack.GetValue(y + 1, x) == NONE)
+    //         {
+    //             puyo_temp[(y + 1) * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
+    //             //コピー後に元位置のpuyoactiveのデータは消す
+    //             puyo_active.SetValue(y, x, NONE);
+    //         }
+    //         else
+    //         {
+    //             puyo_temp[y * puyo_active.GetColumn() + x] = puyo_active.GetValue(y, x);
+    //         }
+    //     }
+    // }
+
+    // //puyo_tempからpuyoactiveへコピー
+    // for (int y = 0; y < puyo_active.GetLine(); y++)
+    // {
+    //     for (int x = 0; x < puyo_active.GetColumn(); x++)
+    //     {
+    //         puyo_active.SetValue(y, x, puyo_temp[y * puyo_active.GetColumn() + x]);
+    //     }
+    // }
+
+    // //一時的格納場所メモリ解放
+    // delete[] puyo_temp;
 }
 
 // ぷよを消したことで生じる穴を詰めてくれる関数
@@ -527,4 +552,17 @@ void PuyoControl::RotateCw()
 //回転(Counter-clockwise)
 void PuyoControl::RotateCcw()
 {
+    //未実装
+}
+
+bool PuyoControl::GameOverJudge(){
+    // for (int x = 0; x<puyo_active.GetColumn()-1;x++)
+        if ((puyo_stack.GetValue(0,5)!=NONE)||(puyo_stack.GetValue(0,6)!=NONE))
+            gameOverFlag = true;
+
+
+    return gameOverFlag;
+}
+int PuyoControl::GetScore(){
+    return score;
 }
