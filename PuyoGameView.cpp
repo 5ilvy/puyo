@@ -186,9 +186,9 @@ void PuyoView::GameOverModal(){
 				for (int ay = 0; ay<LINES/2;ay++){
 					for (int ax = 0; ax<COLS/2;ax++){
 						attrset(COLOR_PAIR(WHITE_BG));
-						mvaddch(ay, ax, '*');
+						mvaddch(ay, ax, ' ');
 					}
-					usleep(1000);
+					usleep(7000);
 				}
 				// attrset(COLOR_PAIR(RED_BG));
 				attrset(COLOR_PAIR(RED));
@@ -202,7 +202,7 @@ void PuyoView::GameOverModal(){
 				//mvaddstr(4, COLS - 45, msg);
 				sprintf(msg, "--------------------");
 				mvaddstr(y+3, COLS/4-10, msg);
-				usleep(10000);
+				usleep(30000);
 			}
 			sprintf(msg, "Press 'Q' to Quit or 'R' to Retry.");
 				mvaddstr(LINES/4+3, COLS/4-17, msg);
