@@ -18,6 +18,6 @@ public:
 
 private:
     void operator&()  const; // アドレスは取得できない
-} nullptr = {};
+} nullPtr;
 
 #endif

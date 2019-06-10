@@ -42,6 +42,7 @@ public:
     int GetCount();
     void IncreaseCount(int n = 1);
     void DecreaseCount(int n = 1);
+    void AllClear();
 
 protected:
     //盤面状態
@@ -78,10 +79,13 @@ public:
 	bool GetVanished();
 	int GetChainNum();
 	int GetCombo();
+    int GetScore();
 private:
 	bool isVanished ; 
-	int  m_chain;
+	int  m_score;
 	int m_combo;
+    int m_chain;
+    int m_combomax;
 };
 
 class PuyoControl
@@ -101,15 +105,12 @@ public:
 	// void RotateCcw();
 	const int DELAY_FORCE_MOVEDOWN;
 	bool GameOverJudge(PuyoArrayStack &puyo_stack);
-	// int GetScore();
+	
 private:
 	bool m_gameOverFlag;
-    //PuyoArrayActive &puyo_active_, PuyoArrayStack &puyo_stack_
-    // PuyoArrayActive &puyo_active;
-    // PuyoArrayStack &puyo_stack;
 	std::queue<puyocolor> m_newPuyoQueue;
 	int m_newPuyoLandingCount;
-	// int score;
+   
 };
 
 #endif
