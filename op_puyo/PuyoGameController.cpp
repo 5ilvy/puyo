@@ -109,6 +109,7 @@ bool PuyoArrayStack::GetVanished() { return isVanished; }
 // puyoの連鎖を検出
 int PuyoArrayStack::VanishPuyo()
 {
+    int m
     bool *puyo_temp_dfs;
     puyo_temp_dfs = new bool[GetColumn() * GetLine()];
     bool exit_loop_flg = false;
@@ -132,7 +133,7 @@ int PuyoArrayStack::VanishPuyo()
                     for (int x_ = 0; x_ < GetColumn(); x_++)
                     {
                         if (puyo_temp_dfs[y_ * GetColumn() + x_])
-                            // VanishAnimation();
+                            
                             SetValue(y_, x_, NONE); //暫定
                     }
                 }

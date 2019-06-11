@@ -77,12 +77,13 @@ public:
 	int VanishPuyo();
 	int VanishPuyoDfs(unsigned int y, unsigned int x, puyocolor const &prev_puyo_color, bool *puyo_temp_dfs);
 	bool GetVanished();
-	int GetChainNum();
+	// int GetChainNum();
 	int GetCombo();
-    int GetScore();
+    long int GetScore();
+    void AddScore(int,int);
 private:
 	bool isVanished ; 
-	int  m_score;
+	long int  m_score;
 	int m_combo;
     int m_chain;
     int m_combomax;

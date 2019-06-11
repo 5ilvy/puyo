@@ -15,9 +15,10 @@ PuyoArray::PuyoArray()
 // ============================================================
 // PuyoArray  | Puyoの盤面データの基底クラス
 // PuyoArray::デストラクタ
-PuyoArray::~PuyoArray() { 
+PuyoArray::~PuyoArray()
+{
     Release();
-    }
+}
 
 // ============================================================
 // PuyoArray::メモリ開放
@@ -51,10 +52,11 @@ unsigned int PuyoArray::GetLine()
 
 // ============================================================
 // PuyoArray 盤面をクリアする
-void PuyoArray::AllClear(){
-    for (int y = 0; y<GetLine(); y++)
-     for (int x = 0; x<GetColumn(); x++)
-        m_data [y*GetColumn()+x] = NONE;
+void PuyoArray::AllClear()
+{
+    for (int y = 0; y < GetLine(); y++)
+        for (int x = 0; x < GetColumn(); x++)
+            m_data[y * GetColumn() + x] = NONE;
 }
 
 // ============================================================
@@ -137,9 +139,9 @@ PuyoArrayStack::PuyoArrayStack()
 {
 }
 
-// ============================================================
-// PuyoArrayStack::ぷよのコンボ数の取得
-int PuyoArrayStack::GetChainNum() { return m_score; }
+// // ============================================================
+// // PuyoArrayStack::ぷよのコンボ数の取得
+// int PuyoArrayStack::GetChainNum() { return m_score; }
 
 // ============================================================
 // PuyoArrayStack::ぷよが消えたかどうかを返す
@@ -180,12 +182,15 @@ int PuyoArrayStack::VanishPuyo()
                     }
                 }
                 m_chain = ret;
-                if (m_chain<0) m_chain = 0;
+                if (m_chain < 0)
+                    m_chain = 0;
                 exit_loop_flg = true;
+            }else{
+                ret = 0;
             }
             if (exit_loop_flg)
                 break;
-                // usleep(10000);
+            // usleep(10000);
         }
         if (exit_loop_flg)
             break;
@@ -398,22 +403,24 @@ void PuyoControl::MoveRight(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_s
 //下移動
 void PuyoControl::MoveDown(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack)
 {
-    for (int y = puyo_active.GetLine() - 1; y >= 0; y--)
+    const unsigned int win_line = puyo_active.GetLine();
+    const unsigned int win_cols = puyo_active.GetColumn();
+    for (int y = win_line - 1; y >= 0; y--)
     {
-        for (int x = 0; x < puyo_active.GetColumn(); x++)
+        for (int x = 0; x < win_cols; x++)
         {
             if (puyo_active.GetValue(y, x) == NONE)
             {
                 continue;
             }
-                if (y < puyo_active.GetLine() - 1
-                     && puyo_stack.GetValue(y + 1, x) == NONE
-                        && puyo_active.GetValue(y + 1, x) == NONE)
+            if (y < win_line - 1 && puyo_stack.GetValue(y + 1, x) == NONE)
+            {
+                if (puyo_active.GetRotateState() != 1 || (puyo_active.GetRotateState() == 1 && puyo_active.GetValue(y + 1, x) == NONE))
                 {
                     puyo_active.SetValue(y + 1, x, puyo_active.GetValue(y, x));
                     //コピー後に元位置のpuyoactiveのデータは消す
                     puyo_active.SetValue(y, x, NONE);
-
+                }
             }
         }
     }
@@ -559,7 +566,10 @@ bool PuyoControl::GameOverJudge(PuyoArrayStack &puyo_stack)
     return m_gameOverFlag;
 }
 
-int PuyoArrayStack::GetScore()
+long int PuyoArrayStack::GetScore()
 {
     return m_score;
+}
+void PuyoArrayStack::AddScore(int numVanishPuyo, int numChainCombo){
+    m_score += (long int)(numVanishPuyo *(2 <<  numChainCombo));
 }

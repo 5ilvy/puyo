@@ -15,12 +15,13 @@ public:
     bool ShowPuyo(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack);
     bool ShowStats(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack, PuyoControl &control);
     void PrintPuyo(unsigned int y, unsigned int x, puyocolor puyo_print);
+    void PrintPuyoBG(unsigned int y, unsigned int x, int bgcolor);
     void ShowCombo(int combos);
     // bool GetAnimationState();
     void GameTitleAnimate();
     void GameTitleInit();
     void VanishAnimation(PuyoArrayActive &puyo_active, bool* puyo_temp_dfs);
-    void GameOverModal(int score);
+    void GameOverModal(long int score);
     void GameOverMenu(unsigned int index);
     void GameOverMenuSelected(unsigned int index);
     int delay;

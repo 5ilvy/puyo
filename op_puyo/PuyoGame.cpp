@@ -1,6 +1,7 @@
 #include "PGController.h"
 #include "PuyoGameView.h"
 #include "PuyoGameTools.h"
+#include <assert.h>
 
 // クラス命名規則 19.06.08 update
 // ====================================================
@@ -33,19 +34,20 @@ public:
         END
     };
     //ゲーム自体は1個のインスタンスでいいのでstaticにすべき（？）
-    static void newGame();                       // 新規ゲーム
-    static void ChangeScene(GAMESCENE scene);    // シーン移行を担当
-    static void Start();                         // イニシャライズ・1度しか実行しない処理
-    static void Update();                        // ループの代わり
-    static bool GetExitFlag();                   // 終了フラグを取得して返す
-    static void UpdateScore(unsigned int score); // スコア更新用関数
-    static int GetScore();                       // スコア取得用関数
-    static void Quit();                          // 終了処理
+    static void newGame();                    // 新規ゲーム
+    static void ChangeScene(GAMESCENE scene); // シーン移行を担当
+    static void Start();                      // イニシャライズ・1度しか実行しない処理
+    static void Update();                     // ループの代わり
+    static bool GetExitFlag();                // 終了フラグを取得して返す
+    static void UpdateScore(long int score);      // スコア更新用関数
+    static long int GetScore();                   // スコア取得用関数
+    static void Quit();                       // 終了処理
+    static GAMESCENE GetCurrentScene() { return m_currentScene; }
 
 private:
     static PGScene *m_pScene;
     static GAMESCENE m_currentScene;
-    static int m_score;
+    static long int m_score;
 };
 
 // ====================================================
@@ -56,15 +58,17 @@ public:
     //基底クラスになるので純粋仮想関数(=0をつけると明示できる)
     PGScene(PGSceneManager::GAMESCENE scene)
         : m_sceneStatus(PGSceneManager::RUN),
-          m_nextScene(scene){
-              PuyoView m_View;
-          };
+          m_nextScene(scene),m_PubScore(0)
+    {
+        PuyoView m_View;
+    };
     virtual ~PGScene(){};
     virtual void Start() = 0;  //初期化処理
     virtual void Update() = 0; //更新処理
     PGSceneManager::SCNSTATUS m_sceneStatus;
     PGSceneManager::GAMESCENE m_nextScene;
     PuyoView m_View;
+    long int m_PubScore;
 };
 
 // ====================================================
@@ -73,8 +77,8 @@ class PGSTitle : public PGScene
 {
 public:
     PGSTitle() : PGScene(PGSceneManager::TITLE){
-        
-    };
+
+                 };
     void Start();  //初期化処理
     void Update(); //更新処理
 };
@@ -89,15 +93,14 @@ public:
         PuyoArrayActive m_PuyoActive;
         PuyoArrayStack m_PuyoStack;
         PuyoControl m_Control;
-
     };
     void Start();  //初期化処理
     void Update(); //更新処理
+    long int GetScore() { return m_PuyoStack.GetScore(); };
 private:
     PuyoArrayActive m_PuyoActive;
     PuyoArrayStack m_PuyoStack;
     PuyoControl m_Control;
-
 };
 
 // ====================================================
@@ -105,9 +108,12 @@ private:
 class PGSResult : public PGScene
 {
 public:
-    PGSResult() : PGScene(PGSceneManager::RESULT){};
+    PGSResult(long int sc) : PGScene(PGSceneManager::RESULT),score(sc){};
     void Start();  //初期化処理
     void Update(); //更新処理
+    
+private:
+long int score;
 };
 
 // ====================================================
@@ -130,16 +136,16 @@ public:
     void Update(){}; //更新処理
 };
 
-
-
 // ----------------------------------------------------
 // シーン変更
 void PGSceneManager::ChangeScene(GAMESCENE scene)
 {
     // nullPtr cpp03じゃ使えねえじゃねえか怒
     //     -> 自前で実装したので03でも動きますチクショー
-    if (m_pScene != nullPtr)
-        delete m_pScene;
+    //       -> 実はdelete内でチェックされる
+    // if (m_pScene != nullPtr){
+    delete m_pScene;
+    // }
     // シーン分岐
     switch (scene)
     {
@@ -150,7 +156,7 @@ void PGSceneManager::ChangeScene(GAMESCENE scene)
         m_pScene = new PGSPlay();
         break;
     case RESULT:
-        m_pScene = new PGSResult();
+        m_pScene = new PGSResult(m_score);
         break;
     // case CONFIG:
     //     m_pScene = new PGSConfig();
@@ -178,6 +184,8 @@ void PGSceneManager::Update()
     m_pScene->Update();
     if (m_pScene->m_sceneStatus == END)
     {
+        if (m_pScene->m_nextScene == RESULT)
+            m_score = (m_pScene)->m_PubScore;
         ChangeScene(m_pScene->m_nextScene);
         if (m_pScene->m_nextScene != EXIT)
             Start();
@@ -207,13 +215,16 @@ bool PGSceneManager::GetExitFlag()
 }
 // ----------------------------------------------------
 // Updating Score
-void PGSceneManager::UpdateScore(unsigned int score)
+void PGSceneManager::UpdateScore(long int score)
 {
-    m_score = score;
+    if (m_pScene == nullPtr)
+        return;
+    if (m_currentScene == PLAY)
+        m_score = ((PGSPlay *)m_pScene)->GetScore();
 }
 // ----------------------------------------------------
 // Get Score
-int PGSceneManager::GetScore()
+long int PGSceneManager::GetScore()
 {
     return m_score;
 }
@@ -224,6 +235,7 @@ void PGSPlay::Start()
 {
     // 画面文字消去
     // ただし背景色が白か黒かは適当にきまる(仕様)
+
     for (int ay = 0; ay < LINES; ay++)
         for (int ax = 0; ax < COLS; ax++)
             mvaddch(ay, ax, ' ');
@@ -232,8 +244,8 @@ void PGSPlay::Start()
     m_PuyoStack.ChangeSize(LINES / 2, COLS / 2); //フィールドは画面サイズの縦横1/2にする
     m_PuyoActive.AllClear();
     m_PuyoStack.AllClear();
-    m_Control.GeneratePuyo();                    //最初のぷよ生成
-    m_Control.PopFromQueue(m_PuyoActive);        //ぷよ取り出し
+    m_Control.GeneratePuyo();             //最初のぷよ生成
+    m_Control.PopFromQueue(m_PuyoActive); //ぷよ取り出し
 }
 // ----------------------------------------------------
 // プレイ画面:更新処理
@@ -243,6 +255,7 @@ void PGSPlay::Update()
     // ゲームオーバーならgameSceneを書き換えてループを抜ける
     if (m_Control.GameOverJudge(m_PuyoStack))
     {
+        m_PubScore = m_PuyoStack.GetScore();
         m_sceneStatus = PGSceneManager::END;
         m_nextScene = PGSceneManager::RESULT;
         return;
@@ -269,23 +282,35 @@ void PGSPlay::Update()
         m_Control.MoveRight(m_PuyoActive, m_PuyoStack);
         break;
     //即落下
-    case ' ':
+    case KEY_UP:
     {
-        while (!m_Control.isLandingPuyo(m_PuyoActive, m_PuyoStack))
+        keypad(stdscr, false);
+        while (!m_Control.isLandingPuyo(m_PuyoActive, m_PuyoStack)) //  && rakkacount<2000)
         {
             m_Control.MoveDown(m_PuyoActive, m_PuyoStack);
         }
         int numVanishedPuyo = 0;
+        int numChainCombo = 0;
+        int maxNVanishedPuyo = 0;
         //ぷよ消去
         do
         {
             numVanishedPuyo = m_PuyoStack.VanishPuyo();
             m_Control.MoveStackDown(m_PuyoStack);
-            // if 
+            numChainCombo++;
+            if(numChainCombo>3)sleep(1);
+            m_View.Display(m_PuyoActive, m_PuyoStack, m_Control);
+            maxNVanishedPuyo = (maxNVanishedPuyo>numVanishedPuyo)?maxNVanishedPuyo:numVanishedPuyo;
+
         } while (numVanishedPuyo >= 4);
+        if (maxNVanishedPuyo >= 3)
+        {
+            m_PuyoStack.AddScore(maxNVanishedPuyo, numChainCombo);
+        }
         //着地していたら新しいぷよ生成
         m_Control.PopFromQueue(m_PuyoActive);
         ch_input = 0;
+        keypad(stdscr, true);
     }
     break;
     //回転
@@ -295,15 +320,24 @@ void PGSPlay::Update()
         if (m_Control.isLandingPuyo(m_PuyoActive, m_PuyoStack))
         {
             int numVanishedPuyo = 0;
+            int numChainCombo = 0;
+            int maxNVanishedPuyo = 0;
             //ぷよ消去
             do
             {
                 numVanishedPuyo = m_PuyoStack.VanishPuyo();
                 m_Control.MoveStackDown(m_PuyoStack);
                 m_View.Display(m_PuyoActive, m_PuyoStack, m_Control);
-                // m_View.ShowCombo()
-                usleep(30000);
+                m_View.ShowCombo(++numChainCombo);
+                // if(numChainCombo>3)m_View.VanishAnimation(m_PuyoActive, m_PuyoStack, m_Control);
+                if(numChainCombo>3)sleep(1);
+                m_View.Display(m_PuyoActive, m_PuyoStack, m_Control);
+                maxNVanishedPuyo = (maxNVanishedPuyo>numVanishedPuyo)?maxNVanishedPuyo:numVanishedPuyo;
             } while (numVanishedPuyo >= 4);
+            if (maxNVanishedPuyo >= 4)
+            {
+                m_PuyoStack.AddScore(maxNVanishedPuyo, numChainCombo);
+            }
             //着地していたら新しいぷよ生成
             m_Control.PopFromQueue(m_PuyoActive);
         }
@@ -325,14 +359,24 @@ void PGSPlay::Update()
         //ぷよ着地判定
         if (m_Control.isLandingPuyo(m_PuyoActive, m_PuyoStack))
         {
+
             int numVanishedPuyo = 0;
+            int maxNVanishedPuyo = 0;
+            int numChainCombo = 0;
             //ぷよ消去
-            do{
+            do
+            {
                 numVanishedPuyo = m_PuyoStack.VanishPuyo();
                 m_Control.MoveStackDown(m_PuyoStack);
-            }while (numVanishedPuyo>=4);
+                numChainCombo++;
+                if(numChainCombo>3)sleep(1);
+                m_View.Display(m_PuyoActive, m_PuyoStack, m_Control);
+                maxNVanishedPuyo = (maxNVanishedPuyo>numVanishedPuyo)?maxNVanishedPuyo:numVanishedPuyo;
+            } while (numVanishedPuyo >= 4);
+                if(maxNVanishedPuyo>=4)
+                m_PuyoStack.AddScore(maxNVanishedPuyo, numChainCombo);
             //着地していたら新しいぷよ生成
-                m_Control.PopFromQueue(m_PuyoActive);
+            m_Control.PopFromQueue(m_PuyoActive);
         }
     }
     m_Control.MoveStackDown(m_PuyoStack);
@@ -385,7 +429,7 @@ void PGSTitle::Start()
 // タイトル画面:更新処理
 void PGSTitle::Update()
 {
-    
+
     //キー入力受付
     int ch_input;
     ch_input = getch();
@@ -407,16 +451,17 @@ void PGSTitle::Update()
 
 // ----------------------------------------------------
 // リザルト画面:初期処理
-void PGSResult::Start(){
+void PGSResult::Start()
+{
     initscr();
-    m_View.GameOverModal(1000);
+    m_View.GameOverModal(score);
 }
 
 // ----------------------------------------------------
 // リザルト画面:更新処理
 void PGSResult::Update()
 {
-    
+
     static unsigned int current_item = 0;
     m_View.GameOverMenu(current_item);
     //キー入力受付
@@ -425,26 +470,25 @@ void PGSResult::Update()
     switch (ch_input)
     {
     case KEY_UP:
-        
+
         if (current_item == 0)
             current_item = 1;
-            else
-            {
-                current_item = 0;
-            }
-            
+        else
+        {
+            current_item = 0;
+        }
         break;
     case KEY_DOWN:
         if (current_item == 1)
             current_item = 0;
-            else
-            {
-                current_item = 1;
-            }
-            
+        else
+        {
+            current_item = 1;
+        }
+
         break;
     case ' ':
-         m_View.GameOverMenuSelected(current_item);
+        m_View.GameOverMenuSelected(current_item);
         switch (current_item)
         {
         case 0:
@@ -456,7 +500,7 @@ void PGSResult::Update()
             m_nextScene = PGSceneManager::EXIT;
             break;
         }
-        
+
         break;
     }
     return;
@@ -466,7 +510,7 @@ void PGSResult::Update()
 // ゲームの大元
 // static指定なのではじめにヌルにしてあげないといけない
 PGScene *PGSceneManager::m_pScene = nullPtr;
-int PGSceneManager::m_score = 0;
+long int PGSceneManager::m_score = 0;
 PGSceneManager::GAMESCENE PGSceneManager::m_currentScene = TITLE;
 
 int main(int argc, char **argv)
@@ -476,6 +520,7 @@ int main(int argc, char **argv)
     while (!puyo_game.GetExitFlag())
     {
         puyo_game.Update();
+        usleep(10);
     }
     puyo_game.Quit();
     return 0;

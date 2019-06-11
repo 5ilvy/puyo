@@ -21,9 +21,39 @@ void PuyoView::VanishAnimation(PuyoArrayActive &puyo_active, bool *puyo_temp_dfs
 	{
 		for (int x_ = 0; x_ < puyo_active.GetColumn(); x_++)
 		{
-			if (puyo_temp_dfs[y_ * puyo_active.GetColumn() + x_])
-				PrintPuyo(y_, x_, NONE); //暫定
+			if (puyo_temp_dfs[y_ * puyo_active.GetColumn() + x_]){
+				PrintPuyoBG(y_, x_,((int) puyo_active.GetValue(y_,x_)+6) ); //暫定
+			}
+				
 		}
+	}
+}
+void PuyoView::PrintPuyoBG(unsigned int y, unsigned int x, int bgcolor)
+{
+	switch (bgcolor)
+	{
+	case NONE_BG:
+		attrset(COLOR_PAIR(NONE_BG));
+		mvaddch(y, x, '.');
+		break;
+	case RED_BG:
+		attrset(COLOR_PAIR(RED_BG));
+		mvaddch(y, x, 'R');
+		break;
+	case BLUE_BG:
+		attrset(COLOR_PAIR(BLUE_BG));
+		mvaddch(y, x, 'B');
+		break;
+	case GREEN_BG:
+		attrset(COLOR_PAIR(GREEN_BG));
+		mvaddch(y, x, 'G');
+		break;
+	case YELLOW_BG:
+		attrset(COLOR_PAIR(YELLOW_BG));
+		mvaddch(y, x, 'Y');
+		break;
+	default:
+		break;
 	}
 }
 
@@ -34,6 +64,7 @@ void PuyoView::Display(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack,
 
 	refresh();
 	delay++;
+	if (delay>10000) delay = 0;
 }
 bool PuyoView::ShowStats(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stack, PuyoControl &control)
 {
@@ -49,10 +80,12 @@ bool PuyoView::ShowStats(PuyoArrayActive &puyo_active, PuyoArrayStack &puyo_stac
 	mvaddstr(2, COLS - 20, msg);
 	sprintf(msg, "| Puyo number: %03d |", count);
 	mvaddstr(3, COLS - 20, msg);
-	//sprintf(msg,"|Chaining: %03d   |", puyo_stack.GetChainNum());
-	//mvaddstr(4, COLS - 45, msg);
-	sprintf(msg, "--------------------");
+	sprintf(msg, "| Score:           |");
 	mvaddstr(4, COLS - 20, msg);
+	sprintf(msg, "| %016ld ", puyo_stack.GetScore());
+	mvaddstr(5, COLS - 20, msg);
+	sprintf(msg, "--------------------");
+	mvaddstr(6, COLS - 20, msg);
 
 	//次のぷよを表示
 	attrset(COLOR_PAIR(WHITE_BG));
@@ -230,7 +263,7 @@ void PuyoView::GameTitleInit()
 			mvaddstr(3, 5, msg);
 			sprintf(msg, "============================");
 			mvaddstr(4, 5, msg);
-			sprintf(msg, "  made by            , 2019 ");
+			sprintf(msg, "                       2019 ");
 			mvaddstr(5, 5, msg);
 			sprintf(msg, "> PRESS SPACE KEY TO START <");
 			mvaddstr(7, 5, msg);
@@ -239,7 +272,7 @@ void PuyoView::GameTitleInit()
 	}
 }
 
-void PuyoView::GameOverModal(int score)
+void PuyoView::GameOverModal(long int score)
 {
 	initscr();
 	char msg[256];
@@ -275,7 +308,7 @@ void PuyoView::GameOverModal(int score)
 			sprintf(msg, "  #####   #    #  #    #  ######   ####     ##    ######  #    # ");
 			mvaddstr(y + 6, COLS / 2 - 32, msg);
 			attrset(COLOR_PAIR(NONE));
-			sprintf(msg, "YOUR SCORE: %08d",score);
+			sprintf(msg, "YOUR SCORE: %016ld",score);
 			mvaddstr(y + 7, COLS / 2 - 10, msg);
 			sprintf(msg, "                                                                 ");
 			mvaddstr(y + 8, COLS / 2 - 10, msg);
@@ -294,7 +327,7 @@ void PuyoView::GameOverModal(int score)
 			sprintf(msg, "===================");
 			mvaddstr(4, 5, msg);
 			attrset(COLOR_PAIR(NONE));
-			sprintf(msg, " SCORE : %08d", score);
+			sprintf(msg, " SCORE : %16ld", score);
 			mvaddstr(5, 5, msg);
 
 		}
@@ -393,4 +426,8 @@ void PuyoView::GameOverMenuSelected(unsigned int index)
 }
 void PuyoView::ShowCombo(int combos)
 {
+	char msg[256];
+	attrset(COLOR_PAIR(RED_BG));
+	sprintf(msg, " %d Combo!",combos);
+		mvaddstr(LINES-1, 0, msg);
 }
